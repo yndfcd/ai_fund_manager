@@ -56,11 +56,14 @@ def mutate(dna):
     dna[point] = operations[random.randint(0, 2)]
     return dna
 
+def simplify_dna(dna):
+    return dna
+
 def train(steps = 1):
     selector = lambda individual: individual[0]
     data = read_stock_data('main_board/600000.csv')
     length = len(data)
-    dnas = [generate_dna(length) for i in range(1000)]
+    dnas = [simplify_dna(generate_dna(length)) for i in range(1000)]
     generation = [(evaluate(data, dna), dna) for dna in dnas]
     generation.sort(key = selector)
     next_generation = generation[-20:]
@@ -73,8 +76,10 @@ def train(steps = 1):
             result = mate(ind1[1], ind2[1])
             mutate(result[0])
             mutate(result[1])
-            offsprings.append((evaluate(data, result[0]), result[0]))
-            offsprings.append((evaluate(data, result[1]), result[1]))
+            dna1 = simplify_dna(result[0])
+            dna2 = simplify_dna(result[1])
+            offsprings.append((evaluate(data, dna1), dna1))
+            offsprings.append((evaluate(data, dna2), dna2))
         offsprings.sort(key = selector)
         next_generation = offsprings
 
