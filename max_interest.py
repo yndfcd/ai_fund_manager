@@ -11,6 +11,7 @@ def read_stock_data(filename):
         needed = row[1:5]
         needed += row[9:13]
         data.append(needed)
+    f.close()
     return data
 
 def evaluate(data, dna):
@@ -57,6 +58,14 @@ def mutate(dna):
     return dna
 
 def simplify_dna(dna):
+    current = dna[0]
+    for index in range(1,len(dna)):
+        if dna[index] == 0:
+            continue
+        elif dna[index] == current:
+            dna[index] = 0
+        else:
+            current = dna[index]
     return dna
 
 def train(steps = 1):
@@ -84,5 +93,41 @@ def train(steps = 1):
         next_generation = offsprings
 
         interest = [ind[0] for ind in next_generation]
-        print 'Generation{}: {}'.format(step, interest)
-        
+#        print 'Generation{}: {}'.format(step, interest)
+    return next_generation[-1]
+
+
+def macd(data):
+    ema12 = []
+    ema26 = []
+    diff = []
+    l12 = 2.0/(12+1)
+    l26 = 2.0/(26+1)
+    ema12.append(float(data[0][7]))
+    ema26.append(float(data[0][7]))
+    diff.append(0.0)
+    for day in range(1, len(data)):
+        close = float(data[day][7])
+        ema12_yesterday = ema12[day-1]
+        ema26_yesterday = ema26[day-1]
+        e12 = close * l12 + ema12_yesterday * (1 - l12)
+        e26 = close * l26 + ema26_yesterday * (1 - l26)
+        ema12.append(e12)
+        ema26.append(e26)
+        diff.append(e12 - e26)
+
+    dea = []
+    dea.append(0.0)
+    fp = 8.0/10.0
+    ft = 2.0/10.0
+    for day in range(1, len(data)):
+        dea_yesterday = dea[day-1]
+        diff_i = diff[day]
+        dea_i = dea_yesterday * fp + diff_i * ft
+        dea.append(dea_i)
+
+    macd = []
+    for day in range(len(data)):
+        macd.append(dea[day] - diff[day])
+
+    return (diff, dea, macd)
